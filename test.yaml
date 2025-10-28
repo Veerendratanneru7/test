@@ -1,0 +1,26 @@
+trigger:
+  - main
+
+pool:
+  name: aws-agent-1   
+
+variables:
+  pythonVersion: '3.9' 
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonVersion)'
+    addToPath: true
+
+- powershell: |
+    set-executionpolicy -ExecutionPolicy Bypass -Scope Process -Force
+    python -m venv .venv
+    .\.venv\Scripts\Activate
+    python -m pip install --upgrade pip
+    if (Test-Path requirements.txt) {
+      pip install -r requirements.txt
+    }
+    # run your sample script
+    python .\src\main.py
+  displayName: 'Create venv, install deps and run script'
