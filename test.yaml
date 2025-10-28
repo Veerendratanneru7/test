@@ -14,13 +14,13 @@ steps:
     addToPath: true
 
 - powershell: |
-    set-executionpolicy -ExecutionPolicy Bypass -Scope Process -Force
+    $src = Join-Path "$(Build.SourcesDirectory)" "src\main.py"
+    Write-Host "Running file: $src"
+    if (-not (Test-Path $src)) { Write-Error "File not found: $src"; exit 1 }
     python -m venv .venv
-    .\.venv\Scripts\Activate
+    .\.venv\Scripts\activate
     python -m pip install --upgrade pip
-    if (Test-Path requirements.txt) {
-      pip install -r requirements.txt
-    }
-    # run your sample script
-    python .\src\main.py
+    if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") { pip install -r "$(Build.SourcesDirectory)\requirements.txt" }
+    python $src
   displayName: 'Create venv, install deps and run script'
+  failOnStderr: true
