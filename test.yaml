@@ -2,12 +2,14 @@ trigger:
   - main
 
 pool:
-  name: aws-agent-1   
+  name: aws-agent-1
 
 variables:
-  pythonVersion: '3.9' 
+  pythonVersion: '3.9'
 
 steps:
+- checkout: self
+
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(pythonVersion)'
@@ -15,12 +17,13 @@ steps:
 
 - powershell: |
     $src = Join-Path "$(Build.SourcesDirectory)" "src\main.py"
-    Write-Host "Running file: $src"
+    Write-Host "PWD: $(Get-Location)"
+    Get-ChildItem "$(Build.SourcesDirectory)" -Recurse -Depth 2 | ForEach-Object { Write-Host $_.FullName }
     if (-not (Test-Path $src)) { Write-Error "File not found: $src"; exit 1 }
     python -m venv .venv
-    .\.venv\Scripts\activate
-    python -m pip install --upgrade pip
-    if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") { pip install -r "$(Build.SourcesDirectory)\requirements.txt" }
-    python $src
+    $venvPython = Join-Path (Get-Location) ".venv\Scripts\python.exe"
+    & $venvPython -m pip install --upgrade pip
+    if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") { & $venvPython -m pip install -r "$(Build.SourcesDirectory)\requirements.txt" }
+    & $venvPython $src
   displayName: 'Create venv, install deps and run script'
   failOnStderr: true
