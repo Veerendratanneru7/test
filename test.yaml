@@ -17,13 +17,15 @@ steps:
 
 - powershell: |
     $src = Join-Path "$(Build.SourcesDirectory)" "src\main.py"
-    Write-Host "PWD: $(Get-Location)"
-    Get-ChildItem "$(Build.SourcesDirectory)" -Recurse -Depth 2 | ForEach-Object { Write-Host $_.FullName }
+    Write-Host "SRC: $src"
     if (-not (Test-Path $src)) { Write-Error "File not found: $src"; exit 1 }
+
     python -m venv .venv
     $venvPython = Join-Path (Get-Location) ".venv\Scripts\python.exe"
     & $venvPython -m pip install --upgrade pip
-    if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") { & $venvPython -m pip install -r "$(Build.SourcesDirectory)\requirements.txt" }
+    if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") {
+      & $venvPython -m pip install -r "$(Build.SourcesDirectory)\requirements.txt"
+    }
     & $venvPython $src
   displayName: 'Create venv, install deps and run script'
-  failOnStderr: true
+  # Consider disabling this because pip often writes to stderr without
