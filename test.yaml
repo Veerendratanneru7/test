@@ -1,5 +1,5 @@
 trigger:
-  - main
+- main
 
 pool:
   name: aws-agent-1
@@ -15,17 +15,21 @@ steps:
     versionSpec: '$(pythonVersion)'
     addToPath: true
 
-- powershell: |
-    $src = Join-Path "$(Build.SourcesDirectory)" "src\main.py"
-    Write-Host "SRC: $src"
-    if (-not (Test-Path $src)) { Write-Error "File not found: $src"; exit 1 }
+- task: PowerShell@2
+  displayName: Create venv, install deps and run script
+  inputs:
+    targetType: inline
+    errorActionPreference: stop
+    script: |
+      $src = Join-Path "$(Build.SourcesDirectory)" "src\main.py"
+      Write-Host "SRC: $src"
+      if (-not (Test-Path $src)) { Write-Error "File not found: $src"; exit 1 }
 
-    python -m venv .venv
-    $venvPython = Join-Path (Get-Location) ".venv\Scripts\python.exe"
-    & $venvPython -m pip install --upgrade pip
-    if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") {
-      & $venvPython -m pip install -r "$(Build.SourcesDirectory)\requirements.txt"
-    }
-    & $venvPython $src
-  displayName: 'Create venv, install deps and run script'
-  # Consider disabling this because pip often writes to stderr without
+      python -m venv .venv
+      $venvPython = Join-Path (Get-Location) ".venv\Scripts\python.exe"
+      & $venvPython -m pip install --upgrade pip
+      if (Test-Path "$(Build.SourcesDirectory)\requirements.txt") {
+        & $venvPython -m pip install -r "$(Build.SourcesDirectory)\requirements.txt"
+      }
+      & $venvPython $src
+    failOnStderr: false  
