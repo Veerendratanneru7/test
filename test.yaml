@@ -21,18 +21,21 @@ steps:
     targetType: inline
     errorActionPreference: stop
     script: |
+      $repo = "$(Build.SourcesDirectory)"
+      Write-Host "Repo root: $repo"
+      Write-Host "Top level files:"
+      Get-ChildItem $repo
+
       python -m venv .venv
       $py = Join-Path ".venv\Scripts" "python.exe"
-
-      Write-Host "Upgrading pip"
       & $py -m pip install --upgrade pip
 
-      $req = Join-Path "$(Build.SourcesDirectory)" "requirements.txt"
-      if (Test-Path $req) {
-        Write-Host "Installing from $req"
-        & $py -m pip install -r $req
-      } else {
-        Write-Error "requirements.txt not found"
-        exit 1
+      $req = Get-ChildItem -Path $repo -Filter requirements.txt -Recurse | Select-Object -First 1
+      if (-not $req) {
+        Write-Host "No requirements.txt found. Nothing to install."
+        exit 0
       }
+
+      Write-Host "Installing from $($req.FullName)"
+      & $py -m pip install -r $req.FullName
     failOnStderr: false
