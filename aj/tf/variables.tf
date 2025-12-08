@@ -1,17 +1,19 @@
 variable "aws_account_id" {
-  description = "Target AWS account ID where ECR repos exist"
+  description = "Target AWS account ID (optional). If empty, will use the account from current AWS credentials."
   type        = string
+  default     = ""
 }
 
 variable "region" {
-  description = "AWS region"
+  description = "AWS region (optional). If empty, will use the region from AWS provider / environment."
   type        = string
-  default     = "us-east-1"
+  default     = ""
 }
 
 variable "cluster_name" {
   description = "Cluster name used for resource naming"
   type        = string
+  default     = "mycluster"
 }
 
 variable "k8s_image_swapper_name" {
@@ -27,13 +29,13 @@ variable "namespace" {
 }
 
 variable "allowed_test_namespaces" {
-  description = "List of namespaces allowed in initial dry-run/test phase"
+  description = "Namespaces allowed initially (whitelist) for testing/phase1"
   type        = list(string)
   default     = ["image-swapper-test"]
 }
 
 variable "oidc_provider_arn" {
-  description = "EKS OIDC provider ARN (for IRSA). Leave empty if not using IRSA"
+  description = "EKS OIDC provider ARN for IRSA (if using EKS). Leave empty if not using IRSA"
   type        = string
   default     = ""
 }
