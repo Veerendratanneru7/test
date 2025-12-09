@@ -19,14 +19,12 @@ k8s_image_swapper_chart_version = "1.11.0"
 dry_run = true
 enable_mutations = false
 
-# Protected namespaces — these will NEVER be mutated by the webhook
 protected_namespaces = ["kube-system", "kube-public", "kube-node-lease"]
 
 # Phase 2: When ready to enable mutations, set target_namespaces to non-critical test namespaces
-# Example: target_namespaces = ["default", "test-namespace-1"]
 target_namespaces = []
 
 # Image swap and copy policies (safe defaults for staged rollout)
-image_swap_policy = "exists"    # Only swap if image exists in target ECR; safe for initial rollout
-image_copy_policy = "delayed"   # Copy images asynchronously; prevents pod startup delays
+image_swap_policy = "exists"    
+image_copy_policy = "delayed"   
 
