@@ -1,0 +1,45 @@
+name: Plan
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      env:
+        description: Environment to target (e.g., sandbox)
+        required: true
+        default: sandbox
+      cluster-type:
+        description: Cluster type (e.g., ghe/ghe-routing/shared-apis/shared-jobs)
+        required: true
+        default: ghe
+      cluster-workspace:
+        description: Cluster workspace path to run Terraform (e.g., ghe-sandbox)
+        required: true
+        default: ghe-sandbox
+
+jobs:
+  deploy:
+    name: TF Plan on ${{ github.event.inputs.env }}
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set AWS Creds for Deployer Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.DEPLOYER_ACCOUNT_ID }}:role/deployer-prod-us-east-1
+          role-duration-seconds: 1200
+
+      - name: Terraform Init
+        working-directory: aj/tf/k8s-image-swapper
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: aj/tf/k8s-image-swapper
+        run: terraform plan -var-file="fnd-ci/ghe/ghe-sandbox.tfvars" -input=false
