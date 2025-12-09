@@ -1,15 +1,12 @@
 locals {
-  # Build JMESPath filters for protected namespaces (match = NOT processed)
   protected_namespace_filters = [
     for ns in var.protected_namespaces : "obj.metadata.namespace == '${ns}'"
   ]
   
-  # If target_namespaces is specified (Phase 2), build allowlist filter
   target_namespace_filters = length(var.target_namespaces) > 0 ? [
     "!(${join(" || ", [for ns in var.target_namespaces : "obj.metadata.namespace == '${ns}'"])})"
   ] : []
   
-  # Combine all filters
   all_filters = concat(
     local.protected_namespace_filters,
     local.target_namespace_filters,
@@ -18,7 +15,6 @@ locals {
     ]
   )
   
-  # Build YAML filters list
   filters_yaml = join("\n      ", [
     for filter in local.all_filters : "- jmespath: \"${filter}\""
   ])
