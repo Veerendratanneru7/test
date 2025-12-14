@@ -113,4 +113,14 @@ resource "aws_iam_role" "k8s_image_swapper" {
   ]
 }
 EOF
+
+  lifecycle {
+    ignore_changes = [assume_role_policy]
+  }
+}
+
+data "aws_iam_role" "k8s_image_swapper_existing" {
+  name = "${var.cluster_name}-${var.k8s_image_swapper_name}"
+
+  depends_on = [aws_iam_role.k8s_image_swapper]
 }
