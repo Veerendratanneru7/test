@@ -44,7 +44,7 @@ jobs:
         working-directory: aj/tf/k8s-image-swapper
         run: |
           terraform state rm aws_iam_role.k8s_image_swapper 2>/dev/null || true
-          terraform import aws_iam_role.k8s_image_swapper "gha-venmo-ghe-dev-shared-ucl-k8s-image-swapper" || echo "Role already imported or import failed; continuing..."
+          terraform import -var-file="fnd-ci/ghe/ghe-sandbox.tfvars" aws_iam_role.k8s_image_swapper "gha-venmo-ghe-dev-shared-ucl-k8s-image-swapper" || echo "Role already imported or import failed; continuing..."
 
       - name: Terraform Plan
         working-directory: aj/tf/k8s-image-swapper
