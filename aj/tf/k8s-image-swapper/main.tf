@@ -52,8 +52,14 @@ imageSwapper:
   rewrite:
     rulesMatchRegex: true
     rules:
-      - source: "ghcr.io/actions/gha-runner-scale-set-controller"
-        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/gha-runner-scale-set-controller"
+      - source: "v-gha.artifactory.aws.venmo.biz/docker"
+        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+      - source: "v-gha.artifactory.aws.venmo.biz/v-actions-runner"
+        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+      - source: "v-gha.artifactory.aws.venmo.biz/v-gha-husky"
+        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+      - source: "v-gha.artifactory.aws.venmo.biz/gha-runner-scale-set-controller"
+        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
 YAML
   ]
 
