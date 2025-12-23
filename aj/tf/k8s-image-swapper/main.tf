@@ -14,10 +14,58 @@ locals {
       "contains(container.image, '.dkr.ecr.') && contains(container.image, '.amazonaws.com')"
     ]
   )
-  
-  filters_yaml = join("\n      ", [
-    for filter in local.all_filters : "- jmespath: \"${filter}\""
-  ])
+
+  filter_rules = [
+    for filter in local.all_filters : {
+      jmespath = filter
+    }
+  ]
+
+  rewrite_rules = [
+    {
+      source = "v-gha.artifactory.aws.venmo.biz/docker"
+      target = "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+    },
+    {
+      source = "v-gha.artifactory.aws.venmo.biz/v-actions-runner"
+      target = "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+    },
+    {
+      source = "v-gha.artifactory.aws.venmo.biz/v-gha-husky"
+      target = "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+    },
+    {
+      source = "v-gha.artifactory.aws.venmo.biz/gha-runner-scale-set-controller"
+      target = "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
+    }
+  ]
+
+  helm_values = {
+    config = {
+      dryRun          = var.dry_run
+      logLevel        = "debug"
+      logFormat       = "console"
+      imageSwapPolicy = var.image_swap_policy
+      imageCopyPolicy = var.image_copy_policy
+      source = {
+        filters = local.filter_rules
+      }
+      target = {
+        type = "aws"
+        aws = {
+          accountId = var.aws_account_id
+          region    = var.region
+        }
+      }
+    }
+    imageSwapper = {
+      enabled = var.enable_mutations
+      rewrite = {
+        rulesMatchRegex = true
+        rules           = local.rewrite_rules
+      }
+    }
+  }
 }
 
 resource "helm_release" "k8s_image_swapper" {
@@ -27,41 +75,7 @@ resource "helm_release" "k8s_image_swapper" {
   chart      = "k8s-image-swapper"
   version    = var.k8s_image_swapper_chart_version
 
-  values = [<<YAML
-config:
-  dryRun: ${var.dry_run}
-  logLevel: debug
-  logFormat: console
-  imageSwapPolicy: ${var.image_swap_policy}
-  imageCopyPolicy: ${var.image_copy_policy}
-
-  source:
-    # Filters to control what pods will be processed.
-    # A matching filter means the pod will NOT be processed.
-    filters:
-      ${local.filters_yaml}
-
-  target:
-    type: aws
-    aws:
-      accountId: "${var.aws_account_id}"
-      region: "${var.region}"
-
-imageSwapper:
-  enabled: ${var.enable_mutations}
-  rewrite:
-    rulesMatchRegex: true
-    rules:
-      - source: "v-gha.artifactory.aws.venmo.biz/docker"
-        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
-      - source: "v-gha.artifactory.aws.venmo.biz/v-actions-runner"
-        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
-      - source: "v-gha.artifactory.aws.venmo.biz/v-gha-husky"
-        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
-      - source: "v-gha.artifactory.aws.venmo.biz/gha-runner-scale-set-controller"
-        target: "${var.aws_account_id}.dkr.ecr.${var.region}.amazonaws.com/sre/prod/docker/gha/node"
-YAML
-  ]
+  values = [yamlencode(local.helm_values)]
 
   timeout = 300
 }
