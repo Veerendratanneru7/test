@@ -1,17 +1,17 @@
 locals {
   protected_namespace_filters = [
-    for ns in var.protected_namespaces : "obj.metadata.namespace == '${ns}'"
+    for ns in var.protected_namespaces : "obj.metadata.namespace != '${ns}'"
   ]
-  
+
   target_namespace_filters = length(var.target_namespaces) > 0 ? [
-    "!(${join(" || ", [for ns in var.target_namespaces : "obj.metadata.namespace == '${ns}'"])})"
+    "(${join(" || ", [for ns in var.target_namespaces : "obj.metadata.namespace == '${ns}'"])})"
   ] : []
   
   all_filters = concat(
     local.protected_namespace_filters,
     local.target_namespace_filters,
     [
-      "contains(container.image, '.dkr.ecr.') && contains(container.image, '.amazonaws.com')"
+      "contains(container.image, 'v-gha.artifactory.aws.venmo.biz')"
     ]
   )
 

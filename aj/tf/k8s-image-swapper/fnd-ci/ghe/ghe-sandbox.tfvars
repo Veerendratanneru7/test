@@ -16,8 +16,8 @@ k8s_image_swapper_chart_version = "1.11.0"
 
 # Phase 1: Dry-Run Deployment
 # In dry-run mode, the webhook logs all mutations it would make but does NOT execute them.
-dry_run = true
-enable_mutations = false
+dry_run = false
+enable_mutations = true
 
 protected_namespaces = ["kube-system", "kube-public", "kube-node-lease"]
 
@@ -27,4 +27,3 @@ target_namespaces = []
 # Image swap and copy policies (safe defaults for staged rollout)
 image_swap_policy = "exists"    
 image_copy_policy = "delayed"   
-
